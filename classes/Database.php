@@ -8,6 +8,15 @@
         private $conn;
 
         public function connect() {
-            // TODO: implement PDO connection here
+            $this->conn = null;
+            try {
+                $dsn = "mysql:host={$this->host};dbname={$this->dbname};charset=utf8mb4";
+                $this->conn = new PDO($dsn, $this->user, $this->pass);
+                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            } catch (PDOException $e) {
+                echo "Connection error: " . $e->getMessage();
+            }
+
+            return $this->conn;
         }
     }
