@@ -6,7 +6,9 @@
         private $username;
         private $email;
         private $password;
+        private $identifier; // Can be username or email for login
 
+        // Constructor to initialize DB connection
         public function __construct($db) {
             $this->pdo = $db->connect();
         }
@@ -24,6 +26,23 @@
             $this->password = password_hash($password, PASSWORD_BCRYPT);
         }
 
+        public function setIdentifier($identifier) {
+            $this->identifier = trim($identifier);
+        }
+
+        public function setPlainPassword($password) {
+            $this->password = $password;
+        }
+
+        public function findByEmail($email) {
+            $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+
+        //------------MAIN FUNCTIONS ------------------------------------
+
         // TODO: Register user
         public function register() {
             if ($this->findByEmail($this->email)) {
@@ -36,14 +55,29 @@
             return $success;
         }
 
-        public function findByEmail($email) {
-            $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
-            $stmt->execute([$email]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-
         // TODO: Login user
-        public function login() {}
+        public function login() {
+            // Check if identifier is email or username
+            if (filter_var($this->identifier, FILTER_VALIDATE_EMAIL)) {
+                $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
+            } else {
+            $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
+            }
+            $stmt->execute([$this->identifier]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user && password_verify($this->password, $user['password'])) {
+                // Set user properties
+                $this->id = $user['id'];
+                
+                // Start session and set session ID variable
+                session_start();
+                $_SESSION['user_id'] = $this->id;
+                header("Location: ../public/index.php");
+                exit;
+            }
+            return false;
+        }
 
         // TODO: Logout user
         public function logout() {}
