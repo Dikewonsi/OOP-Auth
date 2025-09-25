@@ -69,10 +69,14 @@
             if ($user && password_verify($this->password, $user['password'])) {
                 // Set user properties
                 $this->id = $user['id'];
+                $this->email = $user['email'];
+                $this->username = $user['username'];
                 
                 // Start session and set session ID variable
                 session_start();
                 $_SESSION['user_id'] = $this->id;
+                $_SESSION['email'] = $this->email;
+                $_SESSION['username'] = $this->username;
                 header("Location: ../public/index.php");
                 exit;
             }
@@ -80,5 +84,15 @@
         }
 
         // TODO: Logout user
-        public function logout() {}
+        public function logout() {
+            session_start();
+
+            $_SESSION = [];
+
+            // Destroy session
+            session_destroy();
+
+            header("Location: ../public/login.php");
+            exit;
+        }
     }
