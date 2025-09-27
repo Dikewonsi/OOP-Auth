@@ -1,10 +1,23 @@
 <?php
-    session_start();
+  error_reporting(E_ALL);
+  ini_set('display_errors', 1);
 
-    if(!isset($_SESSION['user_id'])) {
-        header("Location: login.php");
-        exit;
-    }
+  require_once "../config/config.php";
+  require_once "../classes/Database.php";
+  require_once "../classes/Accounts.php";
+
+  session_start();
+
+  if (!isset($_SESSION['user_id'])) {
+      header("Location: login.php");
+      exit;
+  }
+
+  $db = new Database();
+  $account = new Accounts($db, $_SESSION['user_id']);
+
+  $accountBalance = $account->getBalance();
+  $accountNumber = $account->getAccountNumber();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,7 +38,6 @@
       <a href="#" class="block px-4 py-2 rounded-lg hover:bg-gray-800">💳 Accounts</a>
       <a href="#" class="block px-4 py-2 rounded-lg hover:bg-gray-800">💸 Transfers</a>
       <a href="#" class="block px-4 py-2 rounded-lg hover:bg-gray-800">📑 Transactions</a>
-      <a href="#" class="block px-4 py-2 rounded-lg hover:bg-gray-800">⚙️ Settings</a>
       <a href="logout.php" class="block px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700">🚪 Logout</a>
     </nav>
   </aside>
@@ -43,24 +55,37 @@
       </div>
     </header>
 
-    <!-- Account summary cards -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-gray-900 p-6 rounded-xl shadow-lg hover:scale-105 transform transition">
-        <h2 class="text-lg font-semibold mb-2">Checking Account</h2>
-        <p class="text-2xl font-bold">$5,430.75</p>
-      </div>
-      <div class="bg-gray-900 p-6 rounded-xl shadow-lg hover:scale-105 transform transition">
-        <h2 class="text-lg font-semibold mb-2">Savings Account</h2>
-        <p class="text-2xl font-bold">$12,890.10</p>
-      </div>
-      <div class="bg-gray-900 p-6 rounded-xl shadow-lg hover:scale-105 transform transition">
-        <h2 class="text-lg font-semibold mb-2">Credit Card</h2>
-        <p class="text-2xl font-bold">- $1,230.50</p>
+    <!-- Account Summary -->
+    <section class="bg-gray-900 p-6 rounded-xl shadow-lg mb-10">
+      <h2 class="text-xl font-semibold mb-4">Your Account</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+       <div class="p-4 bg-gray-800 rounded-lg relative">
+          <p class="text-gray-400 text-sm">Account Number</p>
+          <div class="flex items-center justify-between">
+            <p id="accountNumber" class="text-2xl font-bold tracking-widest">
+              <?php echo htmlspecialchars($accountNumber); ?>
+            </p>
+            <button 
+              onclick="copyAccountNumber()" 
+              class="ml-3 px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition">
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- Toast notification -->
+        <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm opacity-0 transition-opacity duration-500">
+          ✅ Account number copied!
+        </div>
+        <div class="p-4 bg-gray-800 rounded-lg">
+          <p class="text-gray-400 text-sm">Available Balance</p>
+          <p class="text-2xl font-bold text-green-400">$<?php echo number_format($accountBalance, 2); ?></p>
+        </div>
       </div>
     </section>
 
     <!-- Recent transactions -->
-    <section class="mt-10">
+    <section>
       <h2 class="text-xl font-semibold mb-4">Recent Transactions</h2>
       <div class="bg-gray-900 rounded-xl shadow-lg overflow-hidden">
         <table class="w-full text-left">
@@ -96,5 +121,20 @@
       </div>
     </section>
   </main>
+  <script>
+  function copyAccountNumber() {
+    const accountNumber = document.getElementById("accountNumber").innerText;
+    navigator.clipboard.writeText(accountNumber).then(() => {
+      const toast = document.getElementById("toast");
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("opacity-100"), 50); // fade in
+
+      setTimeout(() => {
+        toast.classList.remove("opacity-100"); // fade out
+        setTimeout(() => toast.classList.add("hidden"), 500);
+      }, 2000); // visible for 2s
+    });
+  }
+</script>
 </body>
 </html>
