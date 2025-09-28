@@ -1,43 +1,43 @@
 <?php
-require_once "../config/config.php";
-require_once "../classes/Database.php";
-require_once "../classes/User.php";
+    require_once "../config/config.php";
+    require_once "../classes/Database.php";
+    require_once "../classes/User.php";
 
-$errors = [];
-$success = "";
+    $errors = [];
+    $success = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $db = new Database();
-    $user = new User($db);
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $db = new Database();
+        $user = new User($db);
 
-    $username = trim($_POST['username']);
-    $email    = trim($_POST['email']);
-    $password = $_POST['password'];
+        $username = trim($_POST['username']);
+        $email    = trim($_POST['email']);
+        $password = $_POST['password'];
 
-    // Input validation
-    if (strlen($username) < 3) {
-        $errors[] = "Username must be at least 3 characters.";
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format.";
-    }
-    if (strlen($password) < 4) {
-        $errors[] = "Password must be at least 4 characters.";
-    }
+        // Input validation
+        if (strlen($username) < 3) {
+            $errors[] = "Username must be at least 3 characters.";
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Invalid email format.";
+        }
+        if (strlen($password) < 4) {
+            $errors[] = "Password must be at least 4 characters.";
+        }
 
-    // Only try register if no validation errors
-    if (empty($errors)) {
-        $user->setUsername($username);
-        $user->setEmail($email);
-        $user->setPassword($password);
+        // Only try register if no validation errors
+        if (empty($errors)) {
+            $user->setUsername($username);
+            $user->setEmail($email);
+            $user->setPassword($password);
 
-        if ($user->register()) {
-            $success = "Registration Successful! You can now <a href='login.php' class='underline hover:text-gray-900'>login</a>.";
-        } else {
-            $errors[] = "Email already exists.";
+            if ($user->register()) {
+                $success = "Registration Successful! You can now <a href='login.php' class='underline hover:text-gray-900'>login</a>.";
+            } else {
+                $errors[] = "Email already exists.";
+            }
         }
     }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">

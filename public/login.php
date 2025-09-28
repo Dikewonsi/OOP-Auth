@@ -1,37 +1,33 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+    require_once "../config/config.php";
+    require_once "../classes/Database.php";
+    require_once "../classes/User.php";
 
-require_once "../config/config.php";
-require_once "../classes/Database.php";
-require_once "../classes/User.php";
+    $errors = [];
+    $success = "";
 
-$errors = [];
-$success = "";
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $db = new Database();
+        $user = new User($db);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $db = new Database();
-    $user = new User($db);
+        $identifier = trim($_POST['identifier']);
+        $password   = $_POST['password'];
 
-    $identifier = trim($_POST['identifier']);
-    $password   = $_POST['password'];
+        if (empty($identifier) || empty($password)) {
+            $errors[] = "All fields are required.";
+        }
 
-    if (empty($identifier) || empty($password)) {
-        $errors[] = "All fields are required.";
-    }
+        if (empty($errors)) {
+            $user->setIdentifier($identifier);
+            $user->setPlainPassword($password);
 
-    if (empty($errors)) {
-        $user->setIdentifier($identifier);
-        $user->setPlainPassword($password);
-
-        if ($user->login()) {
-            $success = "Login Successful! Redirecting...";
-        } else {
-            $errors[] = "Invalid username/email or password.";
+            if ($user->login()) {
+                $success = "Login Successful! Redirecting...";
+            } else {
+                $errors[] = "Invalid username/email or password.";
+            }
         }
     }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
